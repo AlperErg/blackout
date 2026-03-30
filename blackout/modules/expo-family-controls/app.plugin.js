@@ -13,6 +13,7 @@ module.exports = function withExpoFamilyControls(config) {
   const extensionBundleId = `${bundleId}.${EXTENSION_NAME}`;
   const appGroup = `group.${bundleId}`;
   const teamId = config.ios?.appleTeamId ?? "89LKPT4J88";
+  const marketingVersion = config.version ?? "1.0";
 
   config = withInfoPlist(config, (mod) => {
     const modes = mod.modResults.UIBackgroundModes || [];
@@ -33,6 +34,25 @@ module.exports = function withExpoFamilyControls(config) {
     const platformRoot = mod.modRequest.platformProjectRoot;
     const projectRoot = mod.modRequest.projectRoot;
     const objects = proj.hash.project.objects;
+
+    // Fix shell execution for paths containing spaces in the main app bundle phase.
+    const shellPhases = objects.PBXShellScriptBuildPhase || {};
+    for (const key in shellPhases) {
+      if (key.endsWith("_comment")) continue;
+      const phase = shellPhases[key];
+      if (!phase || typeof phase !== "object") continue;
+      if (phase.name !== '"Bundle React Native code and images"') continue;
+      if (typeof phase.shellScript !== "string") continue;
+
+      const oldInvocation =
+        "`\\\"$NODE_BINARY\\\" --print \\\"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\\\"`";
+      const newInvocation =
+        "\\\"$(\\\"$NODE_BINARY\\\" --print \\\"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\\\")\\\"";
+
+      if (phase.shellScript.includes(oldInvocation)) {
+        phase.shellScript = phase.shellScript.replace(oldInvocation, newInvocation);
+      }
+    }
 
     // --- Copy extension source files into ios/BlackoutMonitor/ ---
     const destDir = path.join(platformRoot, EXTENSION_NAME);
@@ -94,7 +114,7 @@ module.exports = function withExpoFamilyControls(config) {
       isa: "PBXFileReference",
       lastKnownFileType: "sourcecode.swift",
       name: '"DeviceActivityMonitorExtension.swift"',
-      path: `"${EXTENSION_NAME}/DeviceActivityMonitorExtension.swift"`,
+      path: '"DeviceActivityMonitorExtension.swift"',
       sourceTree: '"<group>"',
     };
     objects["PBXFileReference"][`${swiftFileRefUuid}_comment`] =
@@ -185,7 +205,7 @@ module.exports = function withExpoFamilyControls(config) {
           TARGETED_DEVICE_FAMILY: '"1,2"',
           GENERATE_INFOPLIST_FILE: '"NO"',
           CURRENT_PROJECT_VERSION: '"1"',
-          MARKETING_VERSION: '"1.0"',
+          MARKETING_VERSION: `"${marketingVersion}"`,
           SKIP_INSTALL: '"YES"',
           LD_RUNPATH_SEARCH_PATHS:
             '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"',
