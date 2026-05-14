@@ -2,10 +2,10 @@
 
 Blackout is a mobile app for phone-free social gatherings with on-device app blocking. A host sets optional breaks, the end time for the session and shares a link or QR code with others. Participants stay locked out of distracting apps on their phone until the session ends with in-session chat, host announcements, and push notifications for updates on the event. Native iOS and Android custom-written focus/app-limit APIs, Firebase cloud backend, real-time chat, APNs/FCM notifications, and invite links.
 
-This repository contains the full codebase for the React Native mobile app, the website, and Firebase Cloud Functions that handle backend scheduled tasks.
+This repository contains the full codebase for the React Native mobile app, a minimal redirect website for join links, and Firebase Cloud Functions that handle backend scheduled tasks.
 
 1. **React Native mobile app** for **iOS** and **Android** (`blackout/`)
-2. **React website** companion for app join links (`website/`)
+2. **Website** for app join links (`website/`)
 3. **Firebase Cloud Functions** for scheduled backend tasks (`functions/`)
 
 ## Project structure
@@ -52,7 +52,7 @@ npx expo run:ios --configuration=release --device
 npm run android --configuration=release --device
 ```
 
-## 2) React website
+## 2) Redirect site
 
 Path: `website/`
 
