@@ -58,26 +58,22 @@ To run the app in [Expo Go](https://expo.dev/go) on your phone (no dev build req
 
 After `npm install`, a postinstall script patches the Expo CLI so that `start:go` does not ask you to log in or choose “Proceed anonymously”; it always uses the anonymous flow.
 
-## Join links and the website (blackout.codes)
+## Join links and the website (blackout.ergune.dev)
 
-Session QR codes encode **https://blackout.codes/join/{sessionId}**. When someone scans the QR with the **device’s normal camera**, the browser opens that URL. For the app to open automatically, blackout.codes must redirect to the app.
+Session QR codes encode **https://blackout.ergune.dev/join/{sessionId}** (built in `lib/joinLink.ts`). When someone scans the QR with the **device’s normal camera**, the browser opens that URL, and the site redirects into the app.
 
-**Redirect website included in this repo**
+**The redirect website lives in its own repository**
 
-The **`website`** folder at the repo root contains a minimal redirect page you can deploy to **blackout.codes**:
+It is no longer part of this repo. It is a static GitHub Pages site at
+[AlperErg/blackout-web](https://github.com/AlperErg/blackout-web), served at
+**https://blackout.ergune.dev/**:
 
-- **`website/join.html`** – Immediately redirects to `blackout://join/{sessionId}` so the OS opens the Blackout app. If the app doesn’t open (e.g. user cancels), it shows an “Open in Blackout app” link.
-- **`website/vercel.json`** – Rewrites `/join/:sessionId` to `join.html` (for [Vercel](https://vercel.com)).
-- **`website/netlify.toml`** – Same rewrite for [Netlify](https://netlify.com).
+- A request to `/join/{sessionId}` falls through to the site’s `404.html` (GitHub Pages has no server-side rewrites), which reads the session id and calls `location.replace('blackout://join/{sessionId}')` so the OS opens the Blackout app. If the app doesn’t open, it shows an “Open in Blackout app” link.
+- Pushing to that repo’s `main` auto-deploys via GitHub Actions.
 
-**Deploy so that blackout.codes/join/xyz redirects to the app**
+So scanning the session QR with the system camera opens the link in the browser, which immediately tries to open the app; if the app is installed, it opens and joins the session.
 
-1. Deploy the **`website`** folder to the domain **blackout.codes** (e.g. connect the repo to Vercel or Netlify and set the project root or publish directory to **`website`**, or deploy only the contents of `website`).
-2. Ensure the host uses the rewrite rules above so that `https://blackout.codes/join/ANY_SESSION_ID` serves `join.html`; the page then redirects to `blackout://join/ANY_SESSION_ID` and the app opens.
-
-After deployment, scanning the session QR with the system camera will open the link in the browser, which will immediately try to open the app; if the app is installed, it opens and joins the session.
-
-The app handles `blackout://join/{sessionId}` (and optionally `https://blackout.codes/join/{sessionId}` via Universal Links / App Links) and navigates to the session screen after joining.
+The app handles `blackout://join/{sessionId}` (see `app/_layout.tsx`) and navigates to the session screen after joining. To change the domain, update `JOIN_BASE_URL` in `lib/joinLink.ts` and the `blackout-web` site’s custom domain together.
 
 ## Get a fresh project
 
