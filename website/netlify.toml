@@ -1,4 +1,0 @@
-[[redirects]]
-  from = "/join/*"
-  to = "/join.html"
-  status = 200

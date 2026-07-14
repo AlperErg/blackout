@@ -2,19 +2,19 @@
 
 Blackout is a mobile app for phone-free social gatherings with on-device app blocking. A host sets optional breaks, the end time for the session and shares a link or QR code with others. Participants stay locked out of distracting apps on their phone until the session ends with in-session chat, host announcements, and push notifications for updates on the event. Native iOS and Android custom-written focus/app-limit APIs, Firebase cloud backend, real-time chat, APNs/FCM notifications, and invite links.
 
-This repository contains the full codebase for the React Native mobile app, a minimal redirect website for join links, and Firebase Cloud Functions that handle backend scheduled tasks.
+This repository contains the codebase for the React Native mobile app and the Firebase Cloud Functions that handle backend scheduled tasks. The join-link redirect website is maintained in its own repository, [AlperErg/blackout-web](https://github.com/AlperErg/blackout-web).
 
 1. **React Native mobile app** for **iOS** and **Android** (`blackout/`)
-2. **Website** for app join links (`website/`)
-3. **Firebase Cloud Functions** for scheduled backend tasks (`functions/`)
+2. **Firebase Cloud Functions** for scheduled backend tasks (`functions/`)
+3. **Join-link website** — separate repo: [AlperErg/blackout-web](https://github.com/AlperErg/blackout-web) (hosted at `blackout.ergune.dev`)
 
 ## Project structure
 
 ```text
 .
 ├── blackout/   # Expo React Native app (iOS + Android)
-├── functions/  # Firebase Cloud Functions (scheduled backend jobs)
-└── website/    # Website for join flow (blackout.codes)
+└── functions/  # Firebase Cloud Functions (scheduled backend jobs)
+# Join-link website: separate repo → github.com/AlperErg/blackout-web
 ```
 
 ## 1) React Native app (iOS & Android)
@@ -27,7 +27,7 @@ The mobile app uses **Expo Router** and **Firebase Firestore** to run time-based
 
 1. **App startup & restore:** `app/index.tsx` checks onboarding and permissions, then restores any active session from `AsyncStorage` (`lib/activeSession.ts`).
 2. **Create session (host):** `app/sessionmaker.tsx` creates a Firestore session doc via `lib/sessions.ts` with end time, participant limit, and optional unblock-break settings.
-3. **Join session (participant):** users join via QR scan (`app/qrscanner.tsx`) or deep link (`blackout://join/...` / `https://blackout.codes/join/...` handled in `app/_layout.tsx`), then `joinSession` validates capacity/status in a Firestore transaction.
+3. **Join session (participant):** users join via QR scan (`app/qrscanner.tsx`) or deep link (`blackout://join/...` / `https://blackout.ergune.dev/join/...` handled in `app/_layout.tsx`), then `joinSession` validates capacity/status in a Firestore transaction.
 4. **During session:** `app/session.tsx` enforces blocking (iOS: `expo-family-controls`, Android: `expo-android-blocker`), supports optional timed unblock breaks, and keeps break/session state in local storage.
 5. **Realtime communication:** chat (`lib/chat.ts`) and host announcements (`lib/announcements.ts`) are live Firestore subcollections shown in `SessionChat` and `SessionAnnouncements`.
 6. **Notifications:** push tokens are stored per session (`lib/notifications.ts`); host announcements can push live notifications to participants.
@@ -52,22 +52,16 @@ npx expo run:ios --configuration=release --device
 npm run android --configuration=release --device
 ```
 
-## 2) Redirect site
+## 2) Join-link website (separate repo)
 
-Path: `website/`
+Repo: [AlperErg/blackout-web](https://github.com/AlperErg/blackout-web) · Hosted at `https://blackout.ergune.dev/`
 
-This website handles app join URLs such as:
+This static site handles app join URLs such as `https://blackout.ergune.dev/join/{sessionId}` and
+redirects users into the mobile app deep link `blackout://join/{sessionId}`. It is deployed to
+GitHub Pages via a GitHub Actions workflow on every push to its `main` branch.
 
-- `https://blackout.codes/join/{sessionId}`
-
-It redirects users into the mobile app deep link:
-
-- `blackout://join/{sessionId}`
-
-### Deploy
-
-- **Vercel:** set project root to `website` (uses `website/vercel.json`)
-- **Netlify:** set publish directory to `website` (uses `website/netlify.toml`)
+The app builds these links in `blackout/lib/joinLink.ts` — keep `JOIN_BASE_URL` and the
+website's custom domain in sync.
 
 ## 3) Firebase Cloud Functions
 

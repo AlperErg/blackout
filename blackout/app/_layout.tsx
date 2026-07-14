@@ -47,7 +47,7 @@ export default function RootLayout() {
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
-  // Deep link: when app is opened via blackout://join/SESSION_ID or https://blackout.codes/join/SESSION_ID
+  // Deep link: when app is opened via blackout://join/SESSION_ID or https://blackout.ergune.dev/join/SESSION_ID
   // getInitialURL() can be null on cold start (e.g. Android); capture early and retry so we don't stay on splash/index spinner
   useEffect(() => {
     if (!fontsLoaded || !router) return;

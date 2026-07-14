@@ -1,4 +1,4 @@
-const JOIN_BASE_URL = "https://blackout.codes/join";
+const JOIN_BASE_URL = "https://blackout.ergune.dev/join";
 
 export function buildJoinLink(sessionId: string): string {
   const trimmed = sessionId.trim();
