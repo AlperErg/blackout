@@ -1,0 +1,123 @@
+rules_version = '2';
+
+// Blackout has no Firebase Auth: every client is anonymous, and knowing a
+// session ID (from the QR code / join link) is the only access credential.
+// These rules therefore focus on (a) blocking session-ID enumeration,
+// (b) enforcing the exact document shapes the app writes, and (c) denying
+// everything the app never does.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /sessions/{sessionId} {
+
+      function sessionExists() {
+        return exists(/databases/$(database)/documents/sessions/$(sessionId));
+      }
+
+      // The app only ever fetches single docs (createSession's verify read,
+      // joinSession's transaction get). It never queries the collection, so
+      // deny `list` to stop strangers from enumerating session IDs.
+      allow get: if true;
+      allow list: if false;
+
+      // createSession() — exact field set, sane bounds. The picker allows at
+      // most "same time tomorrow", so endTime is capped at 25h out.
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          'sessionId', 'endTime', 'maxParticipants', 'participantLimit',
+          'status', 'createdAt', 'joined', 'unblockLimit',
+          'unblockDurationMinutes'
+        ]) &&
+        request.resource.data.sessionId == sessionId &&
+        request.resource.data.status == 'active' &&
+        request.resource.data.joined == 0 &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.endTime is timestamp &&
+        request.resource.data.endTime > request.time &&
+        request.resource.data.endTime < request.time + duration.value(25, 'h') &&
+        request.resource.data.maxParticipants is int &&
+        request.resource.data.maxParticipants >= 1 &&
+        request.resource.data.maxParticipants <= 999999 &&
+        request.resource.data.participantLimit == request.resource.data.maxParticipants &&
+        request.resource.data.unblockLimit is int &&
+        request.resource.data.unblockLimit >= 0 &&
+        request.resource.data.unblockLimit <= 20 &&
+        request.resource.data.unblockDurationMinutes is int &&
+        request.resource.data.unblockDurationMinutes >= 5 &&
+        request.resource.data.unblockDurationMinutes <= 10;
+
+      // joinSession() — the only update the app performs is incrementing
+      // `joined` by exactly 1, within capacity, on an active session.
+      // (participantLimit is 999999 for "unlimited", so the capacity check
+      // works uniformly.)
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['joined']) &&
+        request.resource.data.joined == resource.data.joined + 1 &&
+        request.resource.data.joined <= resource.data.participantLimit &&
+        resource.data.status == 'active';
+
+      // Deletion happens client-side both on host early-exit and on expiry
+      // cleanup from any participant's device; without auth there is no way
+      // to distinguish host from participant, so delete must stay open.
+      allow delete: if true;
+
+      match /messages/{messageId} {
+        allow read: if true;
+        // sendMessage() — matches its trimming/slicing exactly.
+        allow create: if
+          sessionExists() &&
+          request.resource.data.keys().hasOnly(['userId', 'username', 'text', 'createdAt']) &&
+          request.resource.data.userId is string &&
+          request.resource.data.userId.size() >= 1 &&
+          request.resource.data.userId.size() <= 40 &&
+          request.resource.data.username is string &&
+          request.resource.data.username.size() >= 1 &&
+          request.resource.data.username.size() <= 24 &&
+          request.resource.data.text is string &&
+          request.resource.data.text.size() >= 1 &&
+          request.resource.data.text.size() <= 500 &&
+          request.resource.data.createdAt == request.time;
+        allow update: if false;
+        // Batch cleanup in deleteSessionWithData().
+        allow delete: if true;
+      }
+
+      match /announcements/{announcementId} {
+        allow read: if true;
+        // sendAnnouncement()
+        allow create: if
+          sessionExists() &&
+          request.resource.data.keys().hasOnly(['text', 'author', 'createdAt']) &&
+          request.resource.data.text is string &&
+          request.resource.data.text.size() >= 1 &&
+          request.resource.data.text.size() <= 500 &&
+          request.resource.data.author is string &&
+          request.resource.data.author.size() >= 1 &&
+          request.resource.data.author.size() <= 50 &&
+          request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if true;
+      }
+
+      match /pushTokens/{userId} {
+        // The host lists all tokens to fan out announcement pushes.
+        allow read: if true;
+        // registerSessionPushToken() uses setDoc, so allow create + overwrite.
+        allow create, update: if
+          sessionExists() &&
+          request.resource.data.keys().hasOnly(['expoPushToken', 'updatedAt']) &&
+          request.resource.data.expoPushToken is string &&
+          request.resource.data.expoPushToken.matches('ExponentPushToken\\[.*\\]') &&
+          request.resource.data.expoPushToken.size() <= 100 &&
+          request.resource.data.updatedAt == request.time;
+        allow delete: if true;
+      }
+    }
+
+    // Everything else (including the retired breakTimers collection) is
+    // denied by default, stated here explicitly.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
