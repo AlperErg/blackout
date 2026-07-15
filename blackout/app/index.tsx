@@ -20,7 +20,6 @@ import {
   isScreenTimeModuleLoaded,
   requestScreenTimeAuthorization,
 } from "expo-family-controls";
-import { cancelBreakPush } from "@/lib/breakTimer";
 import {
   isAndroidBlockerAvailable,
   hasUsageAccess,
@@ -83,7 +82,6 @@ export default function Index() {
         await clearActiveSession();
         if (Platform.OS === "ios") {
           cancelBreakTimer().catch(() => {});
-          cancelBreakPush(session.sessionId).catch(() => {});
           disableShielding().catch(() => {});
         } else if (Platform.OS === "android" && isAndroidBlockerAvailable()) {
           try { stopAndroidBlocking(); } catch { /* ignore */ }

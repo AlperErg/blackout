@@ -29,7 +29,6 @@ import {
   setSessionEndTime,
   clearSessionEndTime,
 } from "expo-family-controls";
-import { scheduleBreakPush, cancelBreakPush } from "@/lib/breakTimer";
 import {
   isAndroidBlockerAvailable,
   startBlocking as startAndroidBlocking,
@@ -336,7 +335,6 @@ export default function Session() {
         }
         await clearActiveSession();
         try { await cancelBreakTimer(); } catch { /* ignore */ }
-        try { if (params.sessionId) await cancelBreakPush(params.sessionId); } catch { /* ignore */ }
         try { await clearSessionEndTime(); } catch { /* ignore */ }
         try { await disableBlocking(); } catch { /* ignore */ }
         setSessionEnded(true);
@@ -383,9 +381,6 @@ export default function Session() {
             setUnblockExpiresAt(null);
             setIsUnblocked(false);
             setBreakSecondsRemaining(null);
-            if (params.sessionId) {
-              try { await cancelBreakPush(params.sessionId); } catch { /* ignore */ }
-            }
             persistSession({ unblockExpiresAt: null });
             return;
           }
@@ -399,9 +394,6 @@ export default function Session() {
           setUnblockExpiresAt(null);
           setIsUnblocked(false);
           setBreakSecondsRemaining(null);
-          if (params.sessionId) {
-            try { await cancelBreakPush(params.sessionId); } catch { /* ignore */ }
-          }
           enableBlocking().catch(() => {});
           persistSession({ unblockExpiresAt: null });
         }
@@ -417,7 +409,6 @@ export default function Session() {
           }
           await clearActiveSession();
           try { await cancelBreakTimer(); } catch { /* ignore */ }
-          try { if (params.sessionId) await cancelBreakPush(params.sessionId); } catch { /* ignore */ }
           try { await clearSessionEndTime(); } catch { /* ignore */ }
           try { await disableBlocking(); } catch { /* ignore */ }
           setSessionEnded(true);
@@ -449,9 +440,6 @@ export default function Session() {
     try {
       if (canUseScreenTime) {
         await disableShieldingForDuration(durationSec);
-        if (params.sessionId) {
-          try { await scheduleBreakPush(params.sessionId, durationSec); } catch { /* ignore */ }
-        }
       } else {
         await disableBlocking();
       }
@@ -468,7 +456,7 @@ export default function Session() {
       unblocksRemaining: Math.max(0, unblocksRemaining - 1),
       unblockExpiresAt: expiresAt,
     });
-  }, [unblocksRemaining, unblockDurationMinutes, persistSession, canBlock, canUseScreenTime, disableBlocking, params.sessionId]);
+  }, [unblocksRemaining, unblockDurationMinutes, persistSession, canBlock, canUseScreenTime, disableBlocking]);
 
   const formatEndTime = () => {
     if (!params.endTime) return "Unknown";
