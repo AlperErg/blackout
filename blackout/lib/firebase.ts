@@ -1,15 +1,17 @@
 import { getApps, initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCG2Mj82OUP-yDH-Q39NT0ieViCE02z15I",
-  authDomain: "cage-b1cfe.firebaseapp.com",
-  projectId: "cage-b1cfe",
-  storageBucket: "cage-b1cfe.firebasestorage.app",
-  messagingSenderId: "811917408901",
-  appId: "1:811917408901:web:0463aa565bc87521ad07ec",
-  measurementId: "G-6BD23X7MFW",
+  apiKey: "AIzaSyAcVGQO6L2-rhPRDCQvWNqFQjPpQ6KVENE",
+  authDomain: "blackout-a0ac3.firebaseapp.com",
+  projectId: "blackout-a0ac3",
+  storageBucket: "blackout-a0ac3.firebasestorage.app",
+  messagingSenderId: "427274772266",
+  appId: "1:427274772266:web:724df2eb29524179358853",
+  measurementId: "G-B50Y3ZCY3Q"
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app!);
+const analytics = getAnalytics(app);
