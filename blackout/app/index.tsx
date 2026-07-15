@@ -62,7 +62,7 @@ export default function Index() {
             params: {
               sessionId: session.sessionId,
               endTime: session.endTime,
-              maxParticipants: session.maxParticipants ?? "",
+              participantLimit: session.participantLimit ?? "",
             },
           });
         } else {

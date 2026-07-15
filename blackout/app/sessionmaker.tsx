@@ -17,7 +17,7 @@ export default function SessionMaker() {
   const router = useRouter();
   const [endTime, setTime] = useState(new Date());
   const [show, setShow] = useState(false);
-  const [maxParticipants, setmaxParticipants] = useState<number>(1);
+  const [participantLimit, setParticipantLimit] = useState<number>(1);
   const [unblockLimit, setUnblockLimit] = useState<number>(0);
   const [unblockDurationMinutes, setUnblockDurationMinutes] = useState<number>(5);
   const [creating, setCreating] = useState(false);
@@ -49,7 +49,7 @@ export default function SessionMaker() {
       }
       const sessionId = await createSession(
         effectiveEndTime,
-        maxParticipants,
+        participantLimit,
         unblockLimit,
         unblockDurationMinutes
       );
@@ -58,7 +58,7 @@ export default function SessionMaker() {
         params: {
           sessionId: sessionId,
           endTime: effectiveEndTime.toISOString(),
-          maxParticipants: String(maxParticipants),
+          participantLimit: String(participantLimit),
           unblockLimit: String(unblockLimit),
           unblockDurationMinutes: String(unblockDurationMinutes),
         },
@@ -139,19 +139,19 @@ export default function SessionMaker() {
               style={({ pressed }) => [
                 styles.selectorButton,
                 pressed && styles.selectorButtonPressed,
-                maxParticipants <= 1 && maxParticipants > 0 && styles.selectorButtonDisabled,
+                participantLimit <= 1 && participantLimit > 0 && styles.selectorButtonDisabled,
               ]}
               onPress={() =>
-                setmaxParticipants(
-                  maxParticipants === 0 ? 20 : Math.max(1, maxParticipants - 1)
+                setParticipantLimit(
+                  participantLimit === 0 ? 20 : Math.max(1, participantLimit - 1)
                 )
               }
-              disabled={maxParticipants === 1}
+              disabled={participantLimit === 1}
             >
               <Text
                 style={[
                   styles.selectorButtonText,
-                  maxParticipants <= 1 && maxParticipants > 0 && styles.selectorButtonTextDisabled,
+                  participantLimit <= 1 && participantLimit > 0 && styles.selectorButtonTextDisabled,
                 ]}
               >
                 −
@@ -160,12 +160,12 @@ export default function SessionMaker() {
 
             <View style={styles.countDisplay}>
               <Text style={styles.countNumber}>
-                {maxParticipants === 0 ? "∞" : maxParticipants}
+                {participantLimit === 0 ? "∞" : participantLimit}
               </Text>
               <Text style={styles.countLabel}>
-                {maxParticipants === 0
+                {participantLimit === 0
                   ? "Unlimited"
-                  : maxParticipants === 1
+                  : participantLimit === 1
                     ? "person"
                     : "people"}
               </Text>
@@ -175,19 +175,19 @@ export default function SessionMaker() {
               style={({ pressed }) => [
                 styles.selectorButton,
                 pressed && styles.selectorButtonPressed,
-                maxParticipants >= 20 && styles.selectorButtonDisabled,
+                participantLimit >= 20 && styles.selectorButtonDisabled,
               ]}
               onPress={() =>
-                setmaxParticipants(
-                  maxParticipants >= 20 ? 0 : Math.min(20, maxParticipants + 1)
+                setParticipantLimit(
+                  participantLimit >= 20 ? 0 : Math.min(20, participantLimit + 1)
                 )
               }
-              disabled={maxParticipants >= 20}
+              disabled={participantLimit >= 20}
             >
               <Text
                 style={[
                   styles.selectorButtonText,
-                  maxParticipants >= 20 && styles.selectorButtonTextDisabled,
+                  participantLimit >= 20 && styles.selectorButtonTextDisabled,
                 ]}
               >
                 +
@@ -199,17 +199,17 @@ export default function SessionMaker() {
             style={({ pressed }) => [
               styles.unlimitedButton,
               pressed && styles.unlimitedButtonPressed,
-              maxParticipants === 0 && styles.unlimitedButtonActive,
+              participantLimit === 0 && styles.unlimitedButtonActive,
             ]}
-            onPress={() => setmaxParticipants(maxParticipants === 0 ? 1 : 0)}
+            onPress={() => setParticipantLimit(participantLimit === 0 ? 1 : 0)}
           >
             <Text
               style={[
                 styles.unlimitedButtonText,
-                maxParticipants === 0 && styles.unlimitedButtonTextActive,
+                participantLimit === 0 && styles.unlimitedButtonTextActive,
               ]}
             >
-              {maxParticipants === 0 ? "✓ Unlimited" : "Unlimited"}
+              {participantLimit === 0 ? "✓ Unlimited" : "Unlimited"}
             </Text>
           </Pressable>
         </View>

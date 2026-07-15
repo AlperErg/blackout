@@ -33,14 +33,14 @@ export default function QRMaker() {
   const params = useLocalSearchParams<{
     sessionId?: string;
     endTime?: string;
-    maxParticipants?: string;
+    participantLimit?: string;
     unblockLimit?: string;
     unblockDurationMinutes?: string;
     openAnnouncements?: string;
   }>();
   const sessionId = params.sessionId;
   const endTime = params.endTime;
-  const maxParticipants = params.maxParticipants;
+  const participantLimit = params.participantLimit;
   const unblockLimit = parseInt(params.unblockLimit ?? "0", 10) || 0;
   const unblockDurationMinutes = parseInt(params.unblockDurationMinutes ?? "5", 10) || 5;
   const [sessionEnded, setSessionEnded] = useState(false);
@@ -68,12 +68,12 @@ export default function QRMaker() {
         sessionId,
         endTime,
         isHost: true,
-        maxParticipants,
+        participantLimit,
         chatUserId: chatId,
         chatUsername: username,
       });
     })();
-  }, [sessionId, endTime, maxParticipants]);
+  }, [sessionId, endTime, participantLimit]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -247,7 +247,7 @@ export default function QRMaker() {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Max participants: </Text>
             <Text style={styles.infoValue} numberOfLines={1}>
-              {maxParticipants === "0" ? "Unlimited" : maxParticipants}
+              {participantLimit === "0" ? "Unlimited" : participantLimit}
             </Text>
           </View>
           <View style={styles.infoDivider} />

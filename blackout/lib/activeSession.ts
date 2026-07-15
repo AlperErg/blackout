@@ -6,7 +6,7 @@ export type ActiveSession = {
   sessionId: string;
   endTime: string; // ISO string
   isHost: boolean;
-  maxParticipants?: string;
+  participantLimit?: string;
   unblockLimit?: number;
   unblockDurationMinutes?: number;
   unblocksRemaining?: number;

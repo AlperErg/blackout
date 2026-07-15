@@ -24,7 +24,7 @@ service cloud.firestore {
       // most "same time tomorrow", so endTime is capped at 25h out.
       allow create: if
         request.resource.data.keys().hasOnly([
-          'sessionId', 'endTime', 'maxParticipants', 'participantLimit',
+          'sessionId', 'endTime', 'participantLimit',
           'status', 'createdAt', 'joined', 'unblockLimit',
           'unblockDurationMinutes'
         ]) &&
@@ -35,10 +35,9 @@ service cloud.firestore {
         request.resource.data.endTime is timestamp &&
         request.resource.data.endTime > request.time &&
         request.resource.data.endTime < request.time + duration.value(25, 'h') &&
-        request.resource.data.maxParticipants is int &&
-        request.resource.data.maxParticipants >= 1 &&
-        request.resource.data.maxParticipants <= 999999 &&
-        request.resource.data.participantLimit == request.resource.data.maxParticipants &&
+        request.resource.data.participantLimit is int &&
+        request.resource.data.participantLimit >= 1 &&
+        request.resource.data.participantLimit <= 999999 &&
         request.resource.data.unblockLimit is int &&
         request.resource.data.unblockLimit >= 0 &&
         request.resource.data.unblockLimit <= 20 &&

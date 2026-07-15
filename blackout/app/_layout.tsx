@@ -109,7 +109,7 @@ export default function RootLayout() {
           params: {
             sessionId: stored.sessionId,
             endTime: stored.endTime,
-            maxParticipants: stored.maxParticipants ?? "",
+            participantLimit: stored.participantLimit ?? "",
             openAnnouncements: "1",
           },
         });

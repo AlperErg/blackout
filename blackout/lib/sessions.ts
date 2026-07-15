@@ -23,7 +23,7 @@ const UNLIMITED = 999999;
 export type SessionData = {
   sessionId: string;
   endTime: Date;
-  maxParticipants: number;
+  participantLimit: number;
   status: "active" | "ended";
   createdAt: ReturnType<typeof serverTimestamp>;
   joined: number;
@@ -39,12 +39,12 @@ function toInt(v: unknown): number {
 
 export async function createSession(
   endTime: Date,
-  maxParticipants: number,
+  participantLimit: number,
   unblockLimit: number,
   unblockDurationMinutes: number,
 ): Promise<string> {
   // 0 = unlimited (stored as UNLIMITED); otherwise clamp to 1–999
-  const raw = Math.floor(Number(maxParticipants));
+  const raw = Math.floor(Number(participantLimit));
   const max = raw === 0 ? UNLIMITED : Math.max(1, Math.min(999, raw));
   const unblocks = Math.max(0, Math.min(20, Math.floor(Number(unblockLimit))));
   const duration =
@@ -55,8 +55,7 @@ export async function createSession(
   const payload = {
     sessionId,
     endTime: Timestamp.fromDate(endTime),
-    maxParticipants: max,
-    participantLimit: max, // backup field in case maxParticipants is stripped by rules
+    participantLimit: max,
     status: "active",
     createdAt: serverTimestamp(),
     joined: 0,
@@ -69,13 +68,13 @@ export async function createSession(
   // Verify the write persisted correctly (catches Firestore rules stripping fields)
   const verify = await getDoc(ref);
   const data = verify.data();
-  const storedRaw = data?.participantLimit ?? data?.maxParticipants;
+  const storedRaw = data?.participantLimit;
   const storedMax =
     storedRaw === 0 || storedRaw === "0" ? UNLIMITED : toInt(storedRaw ?? 0);
   const effectiveStored = storedMax >= UNLIMITED ? UNLIMITED : storedMax;
   if (effectiveStored !== max) {
     throw new Error(
-      `Session created but participant limit may not have saved correctly (expected ${max}, got ${effectiveStored}). Check Firestore security rules allow writing maxParticipants and participantLimit.`
+      `Session created but participant limit may not have saved correctly (expected ${max}, got ${effectiveStored}). Check Firestore security rules allow writing participantLimit.`
     );
   }
 
@@ -104,13 +103,13 @@ export async function joinSession(sessionId: string): Promise<{
       }
 
       const currentJoined = Number(data.joined ?? 0);
-      const rawMax = data.participantLimit ?? data.maxParticipants;
-      const maxParticipants =
+      const rawMax = data.participantLimit;
+      const participantLimit =
         rawMax === 0 || rawMax === "0" || Number(rawMax) >= UNLIMITED
           ? UNLIMITED
           : toInt(rawMax ?? 1);
 
-      if (maxParticipants < UNLIMITED && currentJoined >= maxParticipants) {
+      if (participantLimit < UNLIMITED && currentJoined >= participantLimit) {
         throw new Error("Session is full");
       }
 
@@ -126,7 +125,7 @@ export async function joinSession(sessionId: string): Promise<{
         id: snap.id,
         sessionId: (data.sessionId ?? snap.id) as string,
         endTime: data.endTime?.toDate?.() ?? new Date(),
-        maxParticipants,
+        participantLimit,
         status: data.status as SessionData["status"],
         createdAt: data.createdAt,
         joined: currentJoined + 1,
