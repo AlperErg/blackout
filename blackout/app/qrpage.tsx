@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import {
   saveActiveSession,
@@ -47,6 +48,8 @@ export default function QRMaker() {
   const [chatUserId, setChatUserId] = useState("");
   const [chatUsername, setChatUsername] = useState("Host");
   const [isLeavingSession, setIsLeavingSession] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeTab, setActiveTab] = useState<"announcements" | "home" | "chat">(
     "home"
   );
@@ -163,6 +166,23 @@ export default function QRMaker() {
   };
   const joinLink = buildJoinLink(sessionId ?? "");
 
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    };
+  }, []);
+
+  const onCopyLink = async () => {
+    try {
+      await Clipboard.setStringAsync(joinLink);
+      setLinkCopied(true);
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      Alert.alert("Couldn't copy link", "Please try again.");
+    }
+  };
+
   if (sessionEnded) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -242,6 +262,28 @@ export default function QRMaker() {
             color="#000000"
           />
         </View>
+
+        <Pressable
+          onPress={onCopyLink}
+          style={({ pressed }) => [
+            styles.copyLinkButton,
+            pressed && styles.copyLinkButtonPressed,
+          ]}
+        >
+          <Ionicons
+            name={linkCopied ? "checkmark" : "link-outline"}
+            size={18}
+            color={linkCopied ? "#4ade80" : "#ffffff"}
+          />
+          <Text
+            style={[
+              styles.copyLinkButtonText,
+              linkCopied && styles.copyLinkButtonTextCopied,
+            ]}
+          >
+            {linkCopied ? "Link copied!" : "Copy join link"}
+          </Text>
+        </Pressable>
 
         <View style={styles.infoContainer}>
           <View style={styles.infoRow}>

@@ -118,6 +118,32 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
+  // Copy Link Button
+  copyLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    backgroundColor: "#000000",
+    marginBottom: 16,
+  },
+  copyLinkButtonPressed: {
+    backgroundColor: "#151515",
+  },
+  copyLinkButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#ffffff",
+  },
+  copyLinkButtonTextCopied: {
+    color: "#4ade80",
+  },
+
   // Info Section
   infoContainer: {
     width: "100%",
