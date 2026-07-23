@@ -2,7 +2,7 @@
   "expo": {
   "name": "blackout",
   "slug": "blackout",
-  "version": "2.1.0",
+  "version": "2.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "blackout",
@@ -13,12 +13,12 @@
       "entitlements": {
         "com.apple.developer.family-controls": true
       },
-  "bundleIdentifier": "com.alperergune.blackout",
+  "bundleIdentifier": "com.aergune.blackout",
   "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "appleTeamId": "89LKPT4J88"
+      "appleTeamId": "P74N9B6V54"
     },
     "android": {
       "adaptiveIcon": {
